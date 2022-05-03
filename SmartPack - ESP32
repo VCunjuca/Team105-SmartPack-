@@ -1,50 +1,25 @@
-#include "mcc_generated_files/mcc.h"
-#include <stdio.h>
-/*
-                         Main application
- */
+# import modules
+from machine import UART
+from machine import Pin
+import time
 
-void ISR_1(void)
-{
-        uint8_t rxData;
-        EUSART1_Receive_ISR();
-            // Logic to echo received data
-            if(EUSART1_is_rx_ready())
-            {
-                rxData = EUSART1_Read();
-                //EUSART1_Write(rxData);
-            }
-        LED_0_Toggle();
-}
+# initialize a new UART class
+uart = UART(2, 9600,tx=17,rx=16)
+# run the init method with more details including baudrate and parity
+uart.init(9600, bits=8, parity=None, stop=1) 
+led = Pin(2,Pin.OUT)
 
-void main(void)
-{
-    int ii;
-    float value;
-    
-    // Initialize the device
-    SYSTEM_Initialize();
-    
-    EUSART1_Initialize();
-  
-    
-    EUSART1_SetRxInterruptHandler(ISR_1);
-   
-    
-    // If using interrupts in PIC18 High/Low Priority Mode you need to enable the Global High and Low Interrupts
-    // If using interrupts in PIC Mid-Range Compatibility Mode you need to enable the Global and Peripheral Interrupts
-    // Use the following macros to:
-
-    // Enable the Global Interrupts
-    INTERRUPT_GlobalInterruptEnable();
-
-    // Enable the Peripheral Interrupts
-    INTERRUPT_PeripheralInterruptEnable();
-
-    LED_0_SetHigh();
-    ii = 3;
-    while (1)
-    {
-       printf("ii:%d\r", ii);
-    }
-}
+# run forever
+while True:
+    # read one byte
+    c = uart.read(1)
+    # if c is not empty:s
+    if c is not None:
+        # write the byte back out to uart
+        uart.write(c)
+        # print the byte to the shell
+        print(c)
+        # toggle the onboard LED
+        led.value(led.value()^1)
+    # sleep for a very small amount of time
+        time.sleep(.01)
